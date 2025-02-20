@@ -16,19 +16,16 @@ function createWindow() {
     },
   });
 
-  // Load the React app from the build folder
   mainWindow.loadFile(path.join(__dirname, "../../dist/renderer/index.html"));
 
   mainWindow.webContents.openDevTools();
-
   mainWindow.setMenu(null);
-
   mainWindow.on("closed", () => (mainWindow = null));
 }
 
 function getUSBDevices() {
   exec(
-    'powershell.exe -Command "Get-PnpDevice -Class USB | Select-Object DeviceID, FriendlyName, Status | ConvertTo-Json"',
+    'powershell.exe -Command "Get-PnpDevice -Class USB | Select-Object DeviceID, FriendlyName, Status, Service, Manufacturer  | ConvertTo-Json"',
     (error, stdout) => {
       if (error) {
         console.error("Error fetching USB devices:", error);
@@ -45,8 +42,44 @@ function getUSBDevices() {
   );
 }
 
+function disableDeviceById(deviceId) {
+  exec(
+    `powershell.exe -Command "Disable-PnpDevice -InstanceId '${deviceId}' -Confirm:$false"`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error disabling device ${deviceId}:`, error);
+        return;
+      }
+      console.log(`Device ${deviceId} disabled.`);
+      getUSBDevices(); // Update the device list after disabling the device
+    }
+  );
+}
+
+function enableDeviceById(deviceId) {
+  exec(
+    `powershell.exe -Command "Enable-PnpDevice -InstanceId '${deviceId}' -Confirm:$false"`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error enabling device ${deviceId}:`, error);
+        return;
+      }
+      console.log(`Device ${deviceId} enabled.`);
+      getUSBDevices(); // Update the device list after enabling the device
+    }
+  );
+}
+
 ipcMain.on("request-usb-devices", () => {
   getUSBDevices();
+});
+
+ipcMain.on("disable-device", (event, deviceId) => {
+  disableDeviceById(deviceId);
+});
+
+ipcMain.on("enable-device", (event, deviceId) => {
+  enableDeviceById(deviceId);
 });
 
 app.on("ready", createWindow);

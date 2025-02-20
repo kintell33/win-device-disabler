@@ -29,14 +29,66 @@ const App = () => {
   };
 
   useEffect(() => {
+    handleRefreshDevices();
+  }, []);
+
+  const handleRefreshDevices = () => {
     // Request USB devices when the component loads
     window.electron.requestUSBDevices();
 
     // Listen for USB device updates
     window.electron.onUSBDevicesReceived((devices) => {
-      setAvailableDevices(Array.isArray(devices) ? devices : [devices]); // Handle single object case
+      //filter available device if its already in the selected device list
+      let filteredDevices = devices.filter(
+        (device) => !selectedDevices.find((d) => d.DeviceID === device.DeviceID)
+      );
+
+      let alreadyInSelectedDevices = devices.filter((device) =>
+        selectedDevices.find((d) => d.DeviceID === device.DeviceID)
+      );
+
+      //sort and set lists
+      setAvailableDevices(
+        filteredDevices.sort((a, b) =>
+          a.FriendlyName.localeCompare(b.FriendlyName)
+        )
+      );
+
+      setSelectedDevices(
+        alreadyInSelectedDevices.sort((a, b) =>
+          a.FriendlyName.localeCompare(b.FriendlyName)
+        )
+      );
     });
-  }, []);
+  };
+
+  const handleSaveToLocal = () => {
+    // Save the selected devices to local storage
+    localStorage.setItem("selectedDevices", JSON.stringify(selectedDevices));
+  };
+
+  const loadSelectedDevices = () => {
+    // Load the selected devices from local storage
+    let selectedDevices = JSON.parse(localStorage.getItem("selectedDevices"));
+    if (selectedDevices) {
+      setSelectedDevices(selectedDevices);
+    }
+  };
+
+  const handleEnableSelectedDevices = () => {
+    // Enable all selected devices
+    selectedDevices.forEach((device) => {
+      window.electron.enableDevice(device.DeviceID);
+    });
+  };
+
+  const handleDisableSelectedDevices = () => {
+    // Disable all selected devices
+    selectedDevices.forEach((device) => {
+      console.log("disabling the device" + device.DeviceID);
+      window.electron.disableDevice(device.DeviceID);
+    });
+  };
 
   return (
     <div className="app">
@@ -44,6 +96,13 @@ const App = () => {
       <div className="container">
         {/* Available Devices */}
         <Card title="Available Devices" className="list-card">
+          <Button
+            type="primary"
+            onClick={handleRefreshDevices}
+            style={{ marginBottom: 10 }}
+          >
+            🔄 Refresh devices
+          </Button>
           <div style={{ height: 300, overflow: "auto" }}>
             <List
               bordered
@@ -55,6 +114,9 @@ const App = () => {
                 >
                   <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
                   {item.Status}
+                  <div style={{ fontSize: 10, color: "#666" }}>
+                    {item.Manufacturer} | {item.DeviceID}
+                  </div>
                 </List.Item>
               )}
             />
@@ -83,6 +145,9 @@ const App = () => {
                 >
                   <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
                   {item.Status}
+                  <div style={{ fontSize: 10, color: "#666" }}>
+                    {item.Manufacturer} | {item.DeviceID}
+                  </div>
                 </List.Item>
               )}
             />
@@ -100,10 +165,18 @@ const App = () => {
 
       {/* Action Buttons */}
       <Space className="bottom-buttons">
-        <Button type="primary" size="large">
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleEnableSelectedDevices}
+        >
           Enable Saved Devices
         </Button>
-        <Button type="primary" size="large">
+        <Button
+          type="primary"
+          size="large"
+          onClick={handleDisableSelectedDevices}
+        >
           Disable Saved Devices
         </Button>
       </Space>
