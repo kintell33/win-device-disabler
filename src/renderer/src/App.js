@@ -29,6 +29,7 @@ const App = () => {
   };
 
   useEffect(() => {
+    loadSelectedDevices();
     handleRefreshDevices();
   }, []);
 
@@ -61,6 +62,10 @@ const App = () => {
       );
     });
   };
+
+  useEffect(() => {
+    handleSaveToLocal();
+  }, [selectedDevices]);
 
   const handleSaveToLocal = () => {
     // Save the selected devices to local storage
@@ -115,7 +120,7 @@ const App = () => {
                   <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
                   {item.Status}
                   <div style={{ fontSize: 10, color: "#666" }}>
-                    {item.Manufacturer} | {item.DeviceID}
+                    {item.Manufacturer}
                   </div>
                 </List.Item>
               )}
@@ -133,7 +138,7 @@ const App = () => {
 
         {/* Selected Devices */}
         <Card title="Saved Devices" className="list-card">
-          <div style={{ height: 300, overflow: "auto" }}>
+          <div style={{ height: 350, overflow: "auto" }}>
             <List
               size="small"
               bordered
@@ -146,7 +151,7 @@ const App = () => {
                   <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
                   {item.Status}
                   <div style={{ fontSize: 10, color: "#666" }}>
-                    {item.Manufacturer} | {item.DeviceID}
+                    {item.Manufacturer}
                   </div>
                 </List.Item>
               )}
@@ -173,7 +178,6 @@ const App = () => {
           Enable Saved Devices
         </Button>
         <Button
-          type="primary"
           size="large"
           onClick={handleDisableSelectedDevices}
         >
