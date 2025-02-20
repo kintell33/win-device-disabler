@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { List, Button, Space, Card } from "antd";
+import { XFilled } from "@ant-design/icons";
 import "./styles.css";
 
 const App = () => {
@@ -97,7 +98,7 @@ const App = () => {
 
   return (
     <div className="app">
-      <h1>Device Manager</h1>
+      <h1>Win Device Disabler</h1>
       <div className="container">
         {/* Available Devices */}
         <Card title="Available Devices" className="list-card">
@@ -117,8 +118,18 @@ const App = () => {
                   onClick={() => setSelectedAvailable(item)}
                   className={selectedAvailable === item ? "selected" : ""}
                 >
-                  <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
-                  {item.Status}
+                  <div
+                    style={{
+                      color: item.Status === "OK" ? "green" : "red",
+                      fontSize: 10,
+                      marginRight: 10,
+                    }}
+                  >
+                    <XFilled />
+                  </div>
+                  <strong style={{ fontSize: 12 }}>
+                    {item.FriendlyName || "Unknown Device"}
+                  </strong>
                   <div style={{ fontSize: 10, color: "#666" }}>
                     {item.Manufacturer}
                   </div>
@@ -148,8 +159,18 @@ const App = () => {
                   onClick={() => setSelectedSelected(item)}
                   className={selectedSelected === item ? "selected" : ""}
                 >
-                  <strong>{item.FriendlyName || "Unknown Device"}</strong> -{" "}
-                  {item.Status}
+                  <div
+                    style={{
+                      color: item.Status === "OK" ? "green" : "red",
+                      fontSize: 20,
+                      marginRight: 10,
+                    }}
+                  >
+                    <XFilled />
+                  </div>
+                  <strong style={{ fontSize: 12 }}>
+                    {item.FriendlyName || "Unknown Device"}
+                  </strong>
                   <div style={{ fontSize: 10, color: "#666" }}>
                     {item.Manufacturer}
                   </div>
@@ -177,10 +198,7 @@ const App = () => {
         >
           Enable Saved Devices
         </Button>
-        <Button
-          size="large"
-          onClick={handleDisableSelectedDevices}
-        >
+        <Button size="large" onClick={handleDisableSelectedDevices}>
           Disable Saved Devices
         </Button>
       </Space>
