@@ -51,7 +51,6 @@ function disableDeviceById(deviceId) {
         return;
       }
       console.log(`Device ${deviceId} disabled.`);
-      getUSBDevices(); // Update the device list after disabling the device
     }
   );
 }
@@ -65,7 +64,6 @@ function enableDeviceById(deviceId) {
         return;
       }
       console.log(`Device ${deviceId} enabled.`);
-      getUSBDevices(); // Update the device list after enabling the device
     }
   );
 }

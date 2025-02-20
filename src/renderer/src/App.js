@@ -4,10 +4,15 @@ import { XFilled } from "@ant-design/icons";
 import "./styles.css";
 
 const App = () => {
+  const [connectedDevices, setConnectedDevices] = useState([]);
   const [availableDevices, setAvailableDevices] = useState([]);
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [selectedAvailable, setSelectedAvailable] = useState(null);
   const [selectedSelected, setSelectedSelected] = useState(null);
+
+  const openNotification = (title, text) => {
+    alert(`${title}: ${text}`);
+  };
 
   // Move selected item from available to selected
   const moveToSelected = () => {
@@ -35,42 +40,41 @@ const App = () => {
   }, []);
 
   const handleRefreshDevices = () => {
-    // Request USB devices when the component loads
     window.electron.requestUSBDevices();
 
-    // Listen for USB device updates
     window.electron.onUSBDevicesReceived((devices) => {
-      //filter available device if its already in the selected device list
-      let filteredDevices = devices.filter(
-        (device) => !selectedDevices.find((d) => d.DeviceID === device.DeviceID)
-      );
-
-      let alreadyInSelectedDevices = devices.filter((device) =>
-        selectedDevices.find((d) => d.DeviceID === device.DeviceID)
-      );
-
-      //sort and set lists
-      setAvailableDevices(
-        filteredDevices.sort((a, b) =>
-          a.FriendlyName.localeCompare(b.FriendlyName)
-        )
-      );
-
-      setSelectedDevices(
-        alreadyInSelectedDevices.sort((a, b) =>
-          a.FriendlyName.localeCompare(b.FriendlyName)
-        )
-      );
+      setConnectedDevices(devices);
     });
   };
 
   useEffect(() => {
-    handleSaveToLocal();
-  }, [selectedDevices]);
+    if (connectedDevices.length > 0) {
+      let filteredAvailableDevices = connectedDevices.filter(
+        (device) => !selectedDevices.find((d) => d.DeviceID === device.DeviceID)
+      );
+
+      setAvailableDevices(
+        filteredAvailableDevices.sort((a, b) =>
+          a.FriendlyName.localeCompare(b.FriendlyName)
+        )
+      );
+
+      //update selected devices status
+      let updatedSelectedDevices = selectedDevices.map((device) => {
+        let updatedDevice = connectedDevices.find(
+          (d) => d.DeviceID === device.DeviceID
+        );
+        return updatedDevice || device;
+      });
+
+      setSelectedDevices(updatedSelectedDevices);
+    }
+  }, [connectedDevices]);
 
   const handleSaveToLocal = () => {
     // Save the selected devices to local storage
     localStorage.setItem("selectedDevices", JSON.stringify(selectedDevices));
+    openNotification("Devices Saved", "Selected devices have been saved");
   };
 
   const loadSelectedDevices = () => {
@@ -82,18 +86,23 @@ const App = () => {
   };
 
   const handleEnableSelectedDevices = () => {
-    // Enable all selected devices
     selectedDevices.forEach((device) => {
       window.electron.enableDevice(device.DeviceID);
     });
+
+    setTimeout(() => {
+      handleRefreshDevices();
+    }, 2000);
   };
 
   const handleDisableSelectedDevices = () => {
-    // Disable all selected devices
     selectedDevices.forEach((device) => {
-      console.log("disabling the device" + device.DeviceID);
       window.electron.disableDevice(device.DeviceID);
     });
+
+    setTimeout(() => {
+      handleRefreshDevices();
+    }, 2000);
   };
 
   return (
@@ -102,11 +111,7 @@ const App = () => {
       <div className="container">
         {/* Available Devices */}
         <Card title="Available Devices" className="list-card">
-          <Button
-            type="primary"
-            onClick={handleRefreshDevices}
-            style={{ marginBottom: 10 }}
-          >
+          <Button onClick={handleRefreshDevices} style={{ marginBottom: 10 }}>
             🔄 Refresh devices
           </Button>
           <div style={{ height: 300, overflow: "auto" }}>
@@ -127,10 +132,14 @@ const App = () => {
                   >
                     <XFilled />
                   </div>
-                  <strong style={{ fontSize: 12 }}>
+                  <strong
+                    style={{ fontSize: 12, width: "100%", textAlign: "left" }}
+                  >
                     {item.FriendlyName || "Unknown Device"}
                   </strong>
-                  <div style={{ fontSize: 10, color: "#666" }}>
+                  <div
+                    style={{ fontSize: 10, color: "#666", textAlign: "right" }}
+                  >
                     {item.Manufacturer}
                   </div>
                 </List.Item>
@@ -148,8 +157,11 @@ const App = () => {
         </Card>
 
         {/* Selected Devices */}
-        <Card title="Saved Devices" className="list-card">
-          <div style={{ height: 350, overflow: "auto" }}>
+        <Card title="Selected Devices" className="list-card">
+          <Button onClick={handleSaveToLocal} style={{ marginBottom: 10 }}>
+            💾 Save devices
+          </Button>
+          <div style={{ height: 300, overflow: "auto" }}>
             <List
               size="small"
               bordered
@@ -168,10 +180,14 @@ const App = () => {
                   >
                     <XFilled />
                   </div>
-                  <strong style={{ fontSize: 12 }}>
+                  <strong
+                    style={{ fontSize: 12, width: "100%", textAlign: "left" }}
+                  >
                     {item.FriendlyName || "Unknown Device"}
                   </strong>
-                  <div style={{ fontSize: 10, color: "#666" }}>
+                  <div
+                    style={{ fontSize: 10, color: "#666", textAlign: "right" }}
+                  >
                     {item.Manufacturer}
                   </div>
                 </List.Item>
@@ -198,7 +214,7 @@ const App = () => {
         >
           Enable Saved Devices
         </Button>
-        <Button size="large" onClick={handleDisableSelectedDevices}>
+        <Button danger size="large" onClick={handleDisableSelectedDevices}>
           Disable Saved Devices
         </Button>
       </Space>
