@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "antd": "^5.24.1",
     "electron": "^34.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
