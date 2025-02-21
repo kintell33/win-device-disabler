@@ -18,14 +18,14 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, "../../dist/renderer/index.html"));
 
-  mainWindow.webContents.openDevTools();
+  //mainWindow.webContents.openDevTools();
   mainWindow.setMenu(null);
   mainWindow.on("closed", () => (mainWindow = null));
 }
 
 function getUSBDevices() {
   exec(
-    'powershell.exe -Command "Get-PnpDevice -Class USB | Select-Object DeviceID, FriendlyName, Status, Service, Manufacturer  | ConvertTo-Json"',
+    'powershell.exe -Command "Get-PnpDevice | Select-Object DeviceID, FriendlyName, Status, Service, Manufacturer  | ConvertTo-Json"',
     (error, stdout) => {
       if (error) {
         console.error("Error fetching USB devices:", error);

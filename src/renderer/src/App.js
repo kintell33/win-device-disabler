@@ -43,7 +43,8 @@ const App = () => {
     window.electron.requestUSBDevices();
 
     window.electron.onUSBDevicesReceived((devices) => {
-      setConnectedDevices(devices);
+      //filter null values
+      setConnectedDevices(devices.filter((d) => d));
     });
   };
 
@@ -55,7 +56,7 @@ const App = () => {
 
       setAvailableDevices(
         filteredAvailableDevices.sort((a, b) =>
-          a.FriendlyName.localeCompare(b.FriendlyName)
+          a?.FriendlyName?.localeCompare(b.FriendlyName)
         )
       );
 
