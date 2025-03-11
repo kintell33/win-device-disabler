@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { List, Button, Space, Card } from "antd";
+import { List, Button, Space, Card, Input } from "antd";
 import { XFilled } from "@ant-design/icons";
 import "./styles.css";
 
@@ -9,6 +9,7 @@ const App = () => {
   const [selectedDevices, setSelectedDevices] = useState([]);
   const [selectedAvailable, setSelectedAvailable] = useState(null);
   const [selectedSelected, setSelectedSelected] = useState(null);
+  const [search, setSearch] = useState("");
 
   const openNotification = (title, text) => {
     alert(`${title}: ${text}`);
@@ -53,6 +54,13 @@ const App = () => {
       let filteredAvailableDevices = connectedDevices.filter(
         (device) => !selectedDevices.find((d) => d.DeviceID === device.DeviceID)
       );
+
+      //filter by search term
+      if (search) {
+        filteredAvailableDevices = filteredAvailableDevices.filter((device) =>
+          device?.FriendlyName?.toLowerCase().includes(search.toLowerCase())
+        );
+      }
 
       setAvailableDevices(
         filteredAvailableDevices.sort((a, b) =>
@@ -106,15 +114,42 @@ const App = () => {
     }, 2000);
   };
 
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+
+    let filteredAvailableDevices = connectedDevices.filter(
+      (device) =>
+        !selectedDevices.find((d) => d.DeviceID === device.DeviceID) &&
+        device?.FriendlyName?.toLowerCase().includes(
+          e.target.value.toLowerCase()
+        )
+    );
+
+    setAvailableDevices(
+      filteredAvailableDevices.sort((a, b) =>
+        a?.FriendlyName?.localeCompare(b.FriendlyName)
+      )
+    );
+  };
+
   return (
     <div className="app">
       <h1>Win Device Disabler</h1>
       <div className="container">
         {/* Available Devices */}
         <Card title="Available Devices" className="list-card">
-          <Button onClick={handleRefreshDevices} style={{ marginBottom: 10 }}>
-            🔄 Refresh devices
-          </Button>
+          <div
+            style={{ flexDirection: "row", display: "flex", marginBottom: 10 }}
+          >
+            <Input
+              id="search"
+              placeholder="Class search"
+              value={search}
+              onChange={handleSearchChange}
+              style={{ marginRight: 5 }}
+            ></Input>
+            <Button onClick={handleRefreshDevices}>🔄 Refresh devices</Button>
+          </div>
           <div style={{ height: 300, overflow: "auto" }}>
             <List
               bordered
