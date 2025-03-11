@@ -38,6 +38,7 @@
   "build": {
     "appId": "com.example.win-device-disabler",
     "productName": "Win Device Disabler",
+    "asar": true,
     "directories": {
       "output": "dist"
     },
